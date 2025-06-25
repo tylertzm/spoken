@@ -143,30 +143,12 @@ class WebRTCService {
       
       // Listen for processed audio data from the worklet
       this.processor.port.onmessage = (event) => {
-        if (event.data.type === 'audioData' && this.signalingSocket?.readyState === WebSocket.OPEN) {
-          // Send real-time audio chunks for streaming
-          if (event.data.realtime) {
-            const pcmBuffer = event.data.data;
-            const sampleCount = event.data.sampleCount || 4096;
-            console.log(`🎵 Sending real-time PCM audio: ${pcmBuffer.byteLength} bytes (${sampleCount} samples)`);
-            this.signalingSocket.send(pcmBuffer);
-          }
-        } else if (event.data.type === 'transcriptionChunk' && this.signalingSocket?.readyState === WebSocket.OPEN) {
-          // Send 3-second chunks for transcription
+        // Only send raw PCM audio buffers, not metadata
+        if (
+          (event.data.type === 'audioData' || event.data.type === 'transcriptionChunk') &&
+          this.signalingSocket?.readyState === WebSocket.OPEN
+        ) {
           const pcmBuffer = event.data.data;
-          const duration = event.data.duration;
-          const chunkId = event.data.chunkId;
-          console.log(`🎤 Sending transcription chunk ${chunkId}: ${pcmBuffer.byteLength} bytes, ${duration.toFixed(2)}s (language: ${this.currentLanguage})`);
-          
-          // Send metadata first, then audio data
-          const message = JSON.stringify({
-            type: 'transcriptionChunk',
-            chunkId: chunkId,
-            duration: duration,
-            sampleCount: event.data.sampleCount,
-            language: this.currentLanguage // Include the current language
-          });
-          this.signalingSocket.send(message);
           this.signalingSocket.send(pcmBuffer);
         }
       };
