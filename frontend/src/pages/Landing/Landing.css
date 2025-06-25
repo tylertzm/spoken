@@ -1,0 +1,101 @@
+/* Apply Inter font globally and ensure full viewport height */
+.landing-body {
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Align to the bottom for the arc effect */
+    overflow: hidden; /* Hide anything that goes beyond the viewport */
+    background-color: #000000; /* Dark background similar to the image */
+    color: #ffffff; /* White text for contrast */
+}
+
+
+.start-button {
+    position: relative;
+    margin-top: 20px; /* Position above the arc */
+    align-items: center;
+    font-size: 1.2em;
+    color: #ba2424; /* White text */
+    border: none;
+    text-decoration: none;
+    border-radius: 2px;
+    cursor: pointer;
+    z-index: 10; /* Ensure button is above the arc */
+}
+.arc-container {
+    width: 100vw;
+    height: 50vw; /* Half width for a semi-circle */
+    max-width: 1000px; /* Limit max size for desktop */
+    max-height: 500px; /* Corresponding max height */
+    position: relative;
+    /* Use overflow: hidden and border-radius to shape the arc */
+    overflow: hidden;
+    border-bottom-left-radius: 100% 200%; /* Wider base, taller arc */
+    border-bottom-right-radius: 100% 200%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    margin-bottom: -20%; /* Pull the bottom of the semi-circle partially off-screen */
+}
+
+.arc-gradient {
+    width: 120%; /* Slightly larger than container to ensure full coverage */
+    height: 120%;
+    position: absolute;
+    bottom: 0;
+    left: -10%;
+    /* Conic gradient to simulate the layered rainbow effect */
+    background: conic-gradient(
+        from 180deg at 50% 100%,
+        #00ffd5 0%, /* Cyan */
+        #007bff 10%, /* Blue */
+        #8a2be2 20%, /* Blue-violet */
+        #ff00ff 30%, /* Magenta */
+        #ff007f 40%, /* Rose */
+        #ff4500 50%, /* Orange-red */
+        #ffa500 60%, /* Orange */
+        #ffff00 70%, /* Yellow */
+        #00ff00 80%, /* Lime green */
+        #008000 90%, /* Green */
+        #00ffd5 100% /* Cyan to loop */
+    );
+    /* Mask to shape the gradient into an arc */
+    -webkit-mask: radial-gradient(at 50% 100%, black 0%, black 40%, transparent 45%, transparent 100%);
+    mask: radial-gradient(at 50% 100%, black 0%, black 40%, transparent 45%, transparent 100%);
+    /* Optional: Add a subtle blur or glow */
+    filter: blur(8px);
+    opacity: 0.8;
+    transform: scaleY(0.8) translateY(10%); /* Adjust scale and position to refine arc */
+}
+
+.content-overlay {
+    position: absolute;
+    top: 20%; /* Adjust to place content above the arc */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; /* Ensure content is above the arc */
+    text-align: center;
+    padding: 2rem;
+}
+
+/* No fade transitions */
+body {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .arc-container {
+        height: 35vw; /* Adjust height for larger screens */
+        margin-bottom: -10%; /* Less overlap for larger screens */
+    }
+    .content-overlay {
+        top: 15%; /* Adjust content position */
+    }
+    .arc-gradient {
+        filter: blur(10px); /* Slightly more blur for larger screens */
+    }
+}
