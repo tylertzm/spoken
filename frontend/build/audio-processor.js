@@ -51,7 +51,8 @@ class AudioProcessor extends AudioWorkletProcessor {
             type: 'audioData',
             data: pcmData.buffer,
             sampleCount: this.bufferSize,
-            realtime: true
+            realtime: true,
+            purpose: 'history' // Mark as history log chunk
           });
           
           this.bufferIndex = 0;
@@ -83,7 +84,8 @@ class AudioProcessor extends AudioWorkletProcessor {
       chunkId: this.chunkId,
       data: pcmData.buffer,
       sampleCount: this.sampleCount,
-      duration: duration
+      duration: duration,
+      purpose: 'summary' // Mark as summary chunk
     });
     
     // Clear buffer and start fresh for next chunk (no overlap)

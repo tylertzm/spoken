@@ -151,25 +151,22 @@
 
 /* Form Card Styles */
 .form-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: transparent;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-radius: 24px;
     padding: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: none;
     animation: fadeIn 0.6s ease-out 0.2s backwards;
 }
 
 .contact-form {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
 }
 
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.6rem;
     margin-bottom: 1.6rem;
 }
 
@@ -186,11 +183,11 @@
 .form-input,
 .form-select,
 .form-textarea {
+    padding: 1rem;
+    text-decoration: none;
     width: 100%;
-    padding: 0.8rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    box-shadow: #f5cdcd 0 0 0 1px inset;
+    background: transparent;
     color: #fff;
     font-size: 0.8rem;
     transition: all 0.3s ease;
@@ -210,6 +207,7 @@
 }
 
 .form-select {
+    width: 50%;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     background-repeat: no-repeat;

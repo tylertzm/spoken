@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import ImageDisplay from '../ImageDisplay/ImageDisplay';
 import SettingsModal from '../SettingsModal/SettingsModal';
 import LanguageSelector from '../LanguageSelector/LanguageSelector';
 import ConnectionStatusDisplay from '../ConnectionStatusDisplay/ConnectionStatusDisplay';
 import LiveTranscriptionDisplay from '../LiveTranscriptionDisplay/LiveTranscriptionDisplay';
 import TranscriptionHistory from '../TranscriptionHistory/TranscriptionHistory';
+import TaskDisplay from '../TaskDisplay/TaskDisplay';
+import WebSearchDisplay from '../WebSearchDisplay/WebSearchDisplay';
 
-function TranscriptionDisplay({ transcription, allTranscriptions, connectionStatus, imageUrls, onLanguageChange, onReconnect }) {
+function TranscriptionDisplay({ 
+  transcription, 
+  allTranscriptions, 
+  connectionStatus, 
+  imageUrls, 
+  onLanguageChange, 
+  onReconnect,
+  cleanedTranscriptions 
+}) {
   const [rmsThreshold, setRmsThreshold] = useState(100);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -44,10 +53,37 @@ function TranscriptionDisplay({ transcription, allTranscriptions, connectionStat
         </div>
       </div>
       <div className="table-row">
-        <LiveTranscriptionDisplay transcription={transcription} />
-        <TranscriptionHistory allTranscriptions={allTranscriptions} imageUrls={imageUrls} />
+        <div className="table-cell">
+          <div style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
+            <div style={{ flex: 1, marginRight: 8 }}>
+              <LiveTranscriptionDisplay transcription={transcription} />
+            </div>
+            <div style={{ flex: 1, marginLeft: 8 }}>
+              <TranscriptionHistory 
+                allTranscriptions={allTranscriptions} 
+                imageUrls={imageUrls} 
+                cleanedTranscriptions={cleanedTranscriptions || []} 
+              />
+            </div>
+          </div>
+        </div>
       </div>
-      
+      <div className="table-row">
+        <div className="table-cell" style={{ gridColumn: '1 / span 2' }}>
+          {/* Task cell spanning both columns */}
+          <div className="task-cell">
+            <TaskDisplay lastSummaryChunk={cleanedTranscriptions[0] || ''} />
+          </div>
+        </div>
+      </div>
+      <div className="table-row">
+        <div className="table-cell" style={{ gridColumn: '1 / span 2' }}>
+          {/* Web search cell spanning both columns */}
+          <div className="websearch">
+            <WebSearchDisplay taskSummary={cleanedTranscriptions[0] || ''} />
+          </div>
+        </div>
+      </div>
       {/* Floating Settings Button */}
       <button 
         className="floating-settings-btn"

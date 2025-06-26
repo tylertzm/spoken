@@ -8,6 +8,7 @@ function App() {
   const [imageUrls, setImageUrls] = useState({});  // Store images by chunkId
   const [connectionStatus, setConnectionStatus] = useState('Connecting...');
   const [selectedLanguage, setSelectedLanguage] = useState('en'); // New state for language
+  const [cleanedTranscriptions, setCleanedTranscriptions] = useState([]); // NEW
   const clearTranscriptionTimer = useRef(null);
 
   useEffect(() => {
@@ -15,7 +16,7 @@ function App() {
     console.log('🎯 App component mounted with ID:', componentId, 'setting up WebRTC listener');
     
     const handleWebRTCMessage = (message) => {
-      console.log('📨 Component', componentId, 'received WebRTC message:', message);
+      console.log('[App] Received WebRTC message:', message); // Debug log
       if (message.type === 'status') {
         setConnectionStatus(message.data);
       } else if (message.type === 'images') {
@@ -25,7 +26,29 @@ function App() {
           [message.chunkId]: message.images
         }));
         console.log('🖼️ Received images for chunk:', message.chunkId, message.images);
+      } else if (message.type === 'history') {
+        // Real-time streaming chunk for history log
+        const text = message.message;
+        // Only add to history if it's not the default chunk sent message
+        if (!text.startsWith('audioData chunk sent')) {
+          setAllTranscriptions(prev => {
+            if (text && (prev.length === 0 || prev[0] !== text)) {
+              return [text, ...prev];
+            }
+            return prev;
+          });
+        }
+      } else if (message.type === 'summary') {
+        // 3-second chunk for summary
+        setCleanedTranscriptions(prev => {
+          const text = message.message;
+          if (text && (prev.length === 0 || prev[0] !== text)) {
+            return [text, ...prev];
+          }
+          return prev;
+        });
       } else if (message.type === 'transcription') {
+        console.log('[App] Received transcription message.data:', message.data); // Debug log
         const transcriptionText = message.data;
         
         // Only update transcription if it's meaningful (not empty or "No speech detected")
@@ -93,6 +116,15 @@ function App() {
     }, 500); // Small delay to ensure cleanup
   };
 
+  useEffect(() => {
+    const cleaned = Array.from(new Set(
+      allTranscriptions
+        .map(t => (typeof t === 'string' ? t.trim() : ''))
+        .filter(Boolean)
+    ));
+    setCleanedTranscriptions(cleaned);
+  }, [allTranscriptions]);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -103,6 +135,7 @@ function App() {
           imageUrls={imageUrls}
           onLanguageChange={handleLanguageChange}
           onReconnect={handleReconnect}
+          cleanedTranscriptions={cleanedTranscriptions}
         />
       </header>
     </div>

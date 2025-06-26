@@ -299,6 +299,14 @@ body {
     gap: 30px;
   }
   
+  .main-content-row {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 30px;
+    display: flex;
+    width: 100%;
+  }
+
   .transcription-cell, .history-cell {
     flex: 1;
     max-width: none;
@@ -376,7 +384,7 @@ body {
   max-height: 290px;
   overflow-y: auto;
   width: 100%;
-  text-align: center;
+  text-align: left;
   font-size: clamp(0.9rem, 2vw, 1.1rem);
   line-height: 1.4;
   padding: 10px;
@@ -929,5 +937,28 @@ body {
   .setting-group {
     margin-bottom: 20px;
   }
+}
+
+/* Add to your global CSS file, e.g., styles.css */
+.task-glassbox {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.10);
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 16px 20px;
+  color: #000;
+  font-size: 18px;
+  font-family: inherit;
+  outline: none;
+  margin: 0 auto;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  transition: box-shadow 0.2s;
 }
 
