@@ -14,7 +14,9 @@ function TranscriptionDisplay({
   imageUrls, 
   onLanguageChange, 
   onReconnect,
-  cleanedTranscriptions 
+  cleanedTranscriptions,
+  historyFullScreen = false,
+  onToggleHistoryFullScreen = () => {},
 }) {
   const [rmsThreshold, setRmsThreshold] = useState(100);
   const [showSettings, setShowSettings] = useState(false);
@@ -62,6 +64,8 @@ function TranscriptionDisplay({
               <TranscriptionHistory 
                 allTranscriptions={allTranscriptions} 
                 imageUrls={imageUrls} 
+                fullScreen={historyFullScreen}
+                onToggleFullScreen={onToggleHistoryFullScreen}
                 cleanedTranscriptions={cleanedTranscriptions || []} 
               />
             </div>

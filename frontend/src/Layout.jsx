@@ -48,6 +48,9 @@ const Layout = () => {
           <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>
             Partner with Us
           </Link>
+          <Link to="/captions" className={location.pathname === '/captions' ? 'active' : ''}>
+            Captions
+          </Link>
         </nav>
       </header>
       <main className={transitioning ? 'fade-out' : 'fade-in'}>

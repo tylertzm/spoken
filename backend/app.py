@@ -56,7 +56,7 @@ async def transcribe_audio(audio: UploadFile = File(...)):
                 file=(audio.filename, file.read()),
                 model="whisper-large-v3",
                 response_format="json",
-                language="en",
+                language="zh",
             )
         os.remove(temp_audio_path)
         return JSONResponse(content={"transcription": transcription.text}, status_code=200)
@@ -104,7 +104,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                 file=("audio.wav", audio_bytes),
                                 model="whisper-large-v3",
                                 response_format="json",
-                                language="en",
+                                language="zh",
                             )
                         result_text = transcription.text
                         await websocket.send_text(json.dumps({"type": "transcription", "text": result_text}))

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import TranscriptionDisplay from './components/TranscriptionDisplay/TranscriptionDisplay';
+import TranscriptionHistory from './components/TranscriptionHistory/TranscriptionHistory';
 import webRTCService from './WebRTCService';
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState('Connecting...');
   const [selectedLanguage, setSelectedLanguage] = useState('en'); // New state for language
   const [cleanedTranscriptions, setCleanedTranscriptions] = useState([]); // NEW
+  const [historyFullScreen, setHistoryFullScreen] = useState(false);
   const clearTranscriptionTimer = useRef(null);
 
   useEffect(() => {
@@ -126,7 +128,7 @@ function App() {
   }, [allTranscriptions]);
 
   return (
-    <div className="App">
+    <div className={historyFullScreen ? 'fullscreen-history' : ''}>
       <header className="App-header">
         <TranscriptionDisplay
           transcription={transcription}
@@ -136,6 +138,8 @@ function App() {
           onLanguageChange={handleLanguageChange}
           onReconnect={handleReconnect}
           cleanedTranscriptions={cleanedTranscriptions}
+          historyFullScreen={historyFullScreen}
+          onToggleHistoryFullScreen={() => setHistoryFullScreen(v => !v)}
         />
       </header>
     </div>

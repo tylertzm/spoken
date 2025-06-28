@@ -4,6 +4,7 @@ import Layout from './Layout'; // Import the new Layout component
 import Landing from './pages/Landing/Landing';
 import App from './App';
 import Contact from './pages/Contact/Contact'; // Assuming you have a Contact component
+import Captions from './pages/Captions/Captions';
 
 function AppRouter() {
   return (
@@ -13,7 +14,7 @@ function AppRouter() {
           <Route path="/" element={<Landing />} />
           <Route path="/transcribe" element={<App />} />
           <Route path="/contact" element={<Contact />} />
-
+          <Route path="/captions" element={<Captions summary={"This is a placeholder for summarised text."} />} />
         </Route>
       </Routes>
     </Router>
