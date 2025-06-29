@@ -44,18 +44,29 @@ function LiveTranscriptionDisplay({ transcription }) {
     return () => window.removeEventListener('resize', adjustFontSize);
   }, [transcription]);
 
+  useEffect(() => {
+    const textElement = liveTextRef.current;
+    if (!textElement) return;
+
+    // Set data-length attribute for CSS font size control
+    if (!transcription || transcription.length < 40) {
+      textElement.setAttribute('data-length', 'short');
+    } else if (transcription.length < 100) {
+      textElement.setAttribute('data-length', 'medium');
+    } else {
+      textElement.setAttribute('data-length', 'long');
+    }
+  }, [transcription]);
+
   return (
     <div className="transcription-cell">
       <div className="transcription-display">
         <p ref={liveTextRef} className="live-text">
           {transcription || 'Waiting for speech...'}
         </p>
-        <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-          Debug: "{transcription}" | Length: {transcription?.length || 0}
-        </div>
       </div>
     </div>
   );
 }
 
-export default LiveTranscriptionDisplay; 
+export default LiveTranscriptionDisplay;

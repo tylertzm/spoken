@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import TranscriptionDisplay from './components/TranscriptionDisplay/TranscriptionDisplay';
 import TranscriptionHistory from './components/TranscriptionHistory/TranscriptionHistory';
 import webRTCService from './WebRTCService';
+import WebSearchDisplay from './components/WebSearchDisplay/WebSearchDisplay';
 
 function App() {
   const [transcription, setTranscription] = useState('');
@@ -11,6 +12,8 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('en'); // New state for language
   const [cleanedTranscriptions, setCleanedTranscriptions] = useState([]); // NEW
   const [historyFullScreen, setHistoryFullScreen] = useState(false);
+  const [showWebSearch, setShowWebSearch] = useState(false);
+  const [taskSummary, setTaskSummary] = useState('');
   const clearTranscriptionTimer = useRef(null);
 
   useEffect(() => {
@@ -142,6 +145,12 @@ function App() {
           onToggleHistoryFullScreen={() => setHistoryFullScreen(v => !v)}
         />
       </header>
+      {showWebSearch && (
+        <WebSearchDisplay
+          taskSummary={taskSummary}
+          onClose={() => setShowWebSearch(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,13 @@
 import React from 'react';
 
-function SettingsModal({ showSettings, onClose, rmsThreshold, onRmsThresholdChange }) {
+function SettingsModal({ 
+  showSettings, 
+  onClose, 
+  rmsThreshold, 
+  onRmsThresholdChange, 
+  showStatusIndicator,
+  onShowStatusIndicatorToggle
+}) {
   if (!showSettings) return null;
 
   return (
@@ -38,10 +45,26 @@ function SettingsModal({ showSettings, onClose, rmsThreshold, onRmsThresholdChan
               <span>500 (Least Sensitive)</span>
             </div>
           </div>
+          <div className="setting-group">
+            <label className="setting-label" htmlFor="show-status-indicator">
+              Show Status/Notification
+            </label>
+            <p className="setting-description">
+              Toggle the floating connection status and notification display in the top right corner.
+            </p>
+            <input
+              type="checkbox"
+              id="show-status-indicator"
+              checked={typeof showStatusIndicator !== 'undefined' ? showStatusIndicator : true}
+              onChange={onShowStatusIndicatorToggle}
+              style={{ marginRight: 8 }}
+            />
+            <label htmlFor="show-status-indicator">Show status/notification</label>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default SettingsModal; 
+export default SettingsModal;

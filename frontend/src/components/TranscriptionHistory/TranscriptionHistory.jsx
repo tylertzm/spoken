@@ -89,11 +89,7 @@ function TranscriptionHistory({ allTranscriptions, imageUrls, fullScreen, onTogg
               boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
             }}
           >
-            {fullScreen ? (
-              <span>&#x2715; Exit</span>
-            ) : (
-              <span>&#x26F6; Full Screen</span>
-            )}
+            <span>{fullScreen ? '\u2715' : '\u26F6'}</span>
           </button>
           {localTranscriptions.length === 0 ? (
             <p style={{ color: '#888', fontStyle: 'italic' }}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import SettingsModal from '../SettingsModal/SettingsModal';
 import LanguageSelector from '../LanguageSelector/LanguageSelector';
 import ConnectionStatusDisplay from '../ConnectionStatusDisplay/ConnectionStatusDisplay';
@@ -20,6 +20,11 @@ function TranscriptionDisplay({
 }) {
   const [rmsThreshold, setRmsThreshold] = useState(100);
   const [showSettings, setShowSettings] = useState(false);
+  const [showWebSearch, setShowWebSearch] = useState(false);
+  const [webSearchQuery, setWebSearchQuery] = useState('');
+  const [liveFullScreen, setLiveFullScreen] = useState(false);
+  const [showStatusIndicator, setShowStatusIndicator] = useState(true);
+  const gemmaResponseRef = useRef('');
 
   // Handle RMS threshold changes
   const handleRmsThresholdChange = async (event) => {
@@ -44,22 +49,60 @@ function TranscriptionDisplay({
     }
   };
 
+  // Watch for a new Gemma response that triggers web search
+  const handleGemmaResponse = (response) => {
+    gemmaResponseRef.current = response;
+    if (
+      response && response.toLowerCase().includes('search')
+    ) {
+      setWebSearchQuery(response);
+      setShowWebSearch(true);
+    }
+  };
+
   return (
     <div className="transcription-absolute-table">
       <div className="table-row">
         <div className="table-cell" style={{ gridColumn: '1 / span 2' }}>
           <div className="control-bar">
             <LanguageSelector onLanguageChange={onLanguageChange} />
-            <ConnectionStatusDisplay connectionStatus={connectionStatus} onReconnect={onReconnect} />
+            {showStatusIndicator && (
+              <ConnectionStatusDisplay connectionStatus={connectionStatus} onReconnect={onReconnect} />
+            )}
           </div>
         </div>
       </div>
       <div className="table-row">
         <div className="table-cell">
           <div style={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
-            <div style={{ flex: 1, marginRight: 8 }}>
-              <LiveTranscriptionDisplay transcription={transcription} />
-            </div>
+            {/* Live Transcription Fullscreen Overlay */}
+            {liveFullScreen && (
+              <div className="live-fullscreen-overlay">
+                <LiveTranscriptionDisplay transcription={transcription} className="live-fullscreen-content" />
+                <button
+                  className="fullscreen-btn live-fs-btn"
+                  onClick={() => setLiveFullScreen(false)}
+                  aria-label="Exit Fullscreen Live Transcription"
+                  style={{ position: 'absolute', top: 20, right: 20, zIndex: 2002 }}
+                >
+                  ⤫
+                </button>
+              </div>
+            )}
+            {/* Normal (non-fullscreen) layout */}
+            {!liveFullScreen && (
+              <div style={{ flex: 1, marginRight: 8, position: 'relative' }}>
+                <LiveTranscriptionDisplay transcription={transcription} />
+                <button
+                  className="fullscreen-btn live-fs-btn"
+                  onClick={() => setLiveFullScreen(true)}
+                  aria-label="Fullscreen Live Transcription"
+                  style={{ position: 'absolute', top: 10, right: 10, zIndex: 20 }}
+                >
+                  ⛶
+                </button>
+              </div>
+            )}
             <div style={{ flex: 1, marginLeft: 8 }}>
               <TranscriptionHistory 
                 allTranscriptions={allTranscriptions} 
@@ -76,15 +119,7 @@ function TranscriptionDisplay({
         <div className="table-cell" style={{ gridColumn: '1 / span 2' }}>
           {/* Task cell spanning both columns */}
           <div className="task-cell">
-            <TaskDisplay lastSummaryChunk={cleanedTranscriptions[0] || ''} />
-          </div>
-        </div>
-      </div>
-      <div className="table-row">
-        <div className="table-cell" style={{ gridColumn: '1 / span 2' }}>
-          {/* Web search cell spanning both columns */}
-          <div className="websearch">
-            <WebSearchDisplay taskSummary={cleanedTranscriptions[0] || ''} />
+            <TaskDisplay liveTranscription={transcription} onGemmaResponse={handleGemmaResponse} />
           </div>
         </div>
       </div>
@@ -106,7 +141,17 @@ function TranscriptionDisplay({
         onClose={() => setShowSettings(false)}
         rmsThreshold={rmsThreshold}
         onRmsThresholdChange={handleRmsThresholdChange}
+        showStatusIndicator={showStatusIndicator}
+        onShowStatusIndicatorToggle={() => setShowStatusIndicator(v => !v)}
       />
+
+      {/* WebSearchDisplay as a floating popup */}
+      {showWebSearch && (
+        <WebSearchDisplay
+          taskSummary={webSearchQuery}
+          onClose={() => setShowWebSearch(false)}
+        />
+      )}
     </div>
   );
 }

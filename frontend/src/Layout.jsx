@@ -38,20 +38,19 @@ const Layout = () => {
             <img src={logoLight} className="App-logo" alt="logo" />
           </picture>
         </Link>
-        <nav className="site-nav">
-          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
-            Home
-          </Link>
-          <Link to="/transcribe" className={location.pathname === '/transcribe' ? 'active' : ''}>
-            Transcribe
-          </Link>
-          <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>
-            Partner with Us
-          </Link>
-          <Link to="/captions" className={location.pathname === '/captions' ? 'active' : ''}>
-            Captions
-          </Link>
-        </nav>
+        {location.pathname !== '/transcribe' && (
+          <nav className="site-nav">
+            <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+              Home
+            </Link>
+            <Link to="/transcribe" className={location.pathname === '/transcribe' ? 'active' : ''}>
+              Transcribe
+            </Link>
+            <Link to="/contact" className={location.pathname === '/contact' ? 'active' : ''}>
+              Partner with Us
+            </Link>
+          </nav>
+        )}
       </header>
       <main className={transitioning ? 'fade-out' : 'fade-in'}>
         <Outlet />

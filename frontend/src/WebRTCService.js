@@ -80,15 +80,15 @@ class WebRTCService {
     }
   }
 
-  async createWebSocketConnection() {
+  async createWebSocketConnection(retryCount = 0) {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket('ws://localhost:8000/webrtc');
-      
+      this.signalingSocket = ws;
+
       ws.onopen = () => {
         console.log('📡 WebSocket connected');
-        this.signalingSocket = ws;
         this.notifyListeners({ type: 'status', data: 'Connected ✅' });
-        
+
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
@@ -103,23 +103,26 @@ class WebRTCService {
             console.error('❌ Error parsing WebSocket message:', error);
           }
         };
-        
+
         resolve();
       };
-      
+
       ws.onerror = (error) => {
         console.error('❌ WebSocket error:', error);
         this.notifyListeners({ type: 'status', data: 'Connection error ❌' });
-        reject(error);
+        ws.close();
       };
-      
+
       ws.onclose = (event) => {
         console.log('📡 WebSocket disconnected:', event.code, event.reason);
         this.signalingSocket = null;
         this.notifyListeners({ type: 'status', data: 'Disconnected ❌' });
-        
-        // Don't automatically reconnect to avoid connection loops
-        // The component will restart the connection when needed
+
+        // Reconnect after 2 seconds
+        setTimeout(() => {
+          console.log('🔄 Attempting to reconnect WebSocket...');
+          this.createWebSocketConnection(retryCount + 1);
+        }, 2000);
       };
     });
   }

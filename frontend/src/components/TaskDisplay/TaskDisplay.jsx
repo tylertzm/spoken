@@ -1,17 +1,21 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-function TaskDisplay({ lastSummaryChunk }) {
+function TaskDisplay({ liveTranscription, onGemmaResponse }) {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const intervalRef = useRef(null);
+  const lastTranscriptionRef = useRef('');
 
   useEffect(() => {
-    async function getWeather() {
+    if (!liveTranscription || liveTranscription.trim() === '') return;
+    if (liveTranscription === lastTranscriptionRef.current) return;
+    lastTranscriptionRef.current = liveTranscription;
+
+    async function getGemmaTask() {
       setLoading(true);
       setError(null);
       try {
-        const prompt = `what is a suitable task in under 10 words based on the sentence(s)?  only return a task when there is one and sentences are provided, otherwise, answer with - only ${lastSummaryChunk || ''}`;
+        const prompt = `what is a suitable task in under 10 words based on the sentence(s)?  only return a task when there is one and sentences are provided, otherwise, answer with - only ${liveTranscription}`;
         const res = await fetch('http://localhost:8000/gemma-python', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -20,16 +24,16 @@ function TaskDisplay({ lastSummaryChunk }) {
         if (!res.ok) throw new Error('Failed to fetch Gemma response');
         const data = await res.json();
         setResponse(data.response || 'No response');
+        if (onGemmaResponse) onGemmaResponse(data.response || '');
       } catch (err) {
         setError(err.message);
+        if (onGemmaResponse) onGemmaResponse('');
       } finally {
         setLoading(false);
       }
     }
-    getWeather();
-    intervalRef.current = setInterval(getWeather, 3000);
-    return () => clearInterval(intervalRef.current);
-  }, [lastSummaryChunk]);
+    getGemmaTask();
+  }, [liveTranscription, onGemmaResponse]);
 
   return (
     <div className="task-glassbox">
