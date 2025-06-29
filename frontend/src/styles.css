@@ -143,7 +143,6 @@ body {
   padding: 8px 16px !important;
   background: rgba(0,0,0,0.1) !important;
   border-radius: 5px !important;
-  z-index: 999;
   max-width: calc(100vw - 40px);
   box-sizing: border-box;
 }
@@ -236,12 +235,26 @@ body {
 }
 
 .live-text {
-  font-size: 2.5em; /* Increased font size for better visual effect */
+  font-size: clamp(1.2rem, 3vw, 2.5rem);
   font-weight: bold;
-  min-height: 2em;
-  /* Simple solid color for visibility */
+  min-height: 0;
+  max-height: none;
   color: black;
-  text-shadow: 1px 1px 5px rgba(0,0,0,0.2); /* Subtle shadow to lift the text */
+  text-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+  text-align: center;
+  line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 2vw 1vw;
+  box-sizing: border-box;
+  transition: font-size 0.3s ease;
+  overflow: auto;
 }
 
 /* Responsive font size for live-text based on content length */
@@ -328,6 +341,7 @@ body {
 .transcription-cell, .history-cell {
   min-height: 32vh;
   height: 32vh;
+  max-height: none;
   min-width: 38vw;
   width: 38vw;
   max-width: 44vw;
@@ -349,7 +363,7 @@ body {
   width: 100%;
   height: 100%;
   min-height: 0;
-  max-height: 100%;
+  max-height: none;
   padding: 2vw;
   border-radius: 2vw;
   overflow: hidden;
@@ -358,8 +372,8 @@ body {
 .live-text {
   font-size: clamp(1.2rem, 3vw, 2.5rem);
   font-weight: bold;
-  min-height: 3vh;
-  max-height: 15vh;
+  min-height: 0;
+  max-height: none;
   color: black;
   text-shadow: 1px 1px 5px rgba(0,0,0,0.2);
   text-align: center;
@@ -367,13 +381,15 @@ body {
   word-wrap: break-word;
   overflow-wrap: break-word;
   width: 100%;
+  height: auto;
+  min-height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1vw;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 2vw 1vw;
   box-sizing: border-box;
   transition: font-size 0.3s ease;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .history-log {
@@ -390,6 +406,21 @@ body {
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #111 !important; /* Black text in normal mode */
+}
+
+/* Ensure history-log is black in normal mode, white in fullscreen */
+.history-log:not(.fullscreen-history-log) {
+  color: #111 !important;
+}
+
+.fullscreen-history-log {
+  color: #fff !important;
+}
+
+/* Ensure fullscreen history log is always white, even if .history-log is present */
+.fullscreen-history-log.history-log {
+  color: #fff !important;
 }
 
 @media (max-width: 1024px) {
@@ -778,7 +809,7 @@ body {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.2);
+  box-shadow: none;
   padding: 0;
   margin: 0;
 }
@@ -793,18 +824,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: blur(10px) rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98); /* match live-fullscreen-overlay */
   flex-direction: column;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.2);
+  box-shadow: none;
   padding: 0;
   margin: 0;
+  color: #111 !important;
 }
 
 .live-fullscreen-content {
   width: 90vw;
   max-width: 900px;
-  min-height: 40vh;
-  max-height: 80vh;
+  height: 100vh;
   background: rgba(255,255,255,0.95);
   border-radius: 2vw;
   box-shadow: 0 8px 40px rgba(0,0,0,0.10);
@@ -815,11 +846,15 @@ body {
   font-weight: bold;
   color: #111;
   padding: 3vw;
+
   text-align: center;
   overflow: auto;
 }
 
 .fullscreen-btn.live-fs-btn {
+  position: fixed;
+  top: 24px;
+  right: 32px;
   background: rgba(0,0,0,0.12);
   color: #222;
   border: none;
@@ -840,7 +875,175 @@ body {
 }
 
 .fullscreen-history-log {
-  font-size: 10vw;
-  color: #fff !important;
+  width: 96vw;
+  max-width: 900px;
+  min-height: 60vh;
+  max-height: 90vh;
+  margin: 2vh auto;
+  border-radius: 18px;
+  background: #fff;
+  color: #111 !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 2vw 2vw 2vw 2vw;
+  overflow: hidden;
+}
+
+.fullscreen-history-scroll {
+  width: 100%;
+  height: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* --- TranscriptionHistory Component Styles --- */
+
+.fullscreen-toggle-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.2s;
+}
+.fullscreen-toggle-btn:hover {
+  background: rgba(0,0,0,0.7);
+}
+
+.history-empty-msg {
+  color: #888;
+  font-style: italic;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+.history-item.finalized {
+  opacity: 1;
+}
+
+.edit-input {
+  flex: 1;
+  min-width: 0;
+  margin-right: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #111 !important;
+  font-size: 1em;
+  outline: none;
+  box-shadow: none;
+}
+
+/* Fix edit input color in all modes */
+.edit-input {
+  color: #111 !important;
+  background: #fff !important;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.edit-save-btn, .edit-cancel-btn {
+  margin-right: 4px;
+  background: transparent;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.edit-cancel-btn {
+  color: #888;
+  margin-right: 0;
+}
+.edit-save-btn:hover, .edit-cancel-btn:hover {
+  background: #222;
+  color: #aaffaa;
+}
+
+.edit-btn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+.edit-btn:hover {
+  color: #fff;
+}
+
+/* Ensure edit button is visible in fullscreen mode */
+.fullscreen-history-log .edit-btn {
+  color: #222 !important;
+  background: rgba(255,255,255,0.1);
+}
+.fullscreen-history-log .edit-btn:hover {
+  color: #111 !important;
+  background: rgba(0,0,0,0.08);
+}
+
+.history-text {
+  flex: 1;
+  min-width: 0;
+  margin-right: 8px;
+  white-space: pre-line;
+  word-break: break-word;
+  font-weight: 400;
+  color: #111;
+}
+.history-text.finalized {
+  font-weight: 700;
+  color: #2ecc40;
+}
+
+.finalized-check {
+  margin-left: 4px;
+  color: #2ecc40;
+  font-size: 18px;
+}
+
+.history-image-wrapper {
+  margin-left: 8px;
+}
+
+/* Position fullscreen button in history cell (not fullscreen mode) */
+.history-cell .history-fs-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+/* When in fullscreen, .fullscreen-btn.live-fs-btn remains fixed top right of viewport */
+
+/* Make edit input visible in fullscreen history overlay */
+.fullscreen-history-log .edit-input {
+  color: #111 !important;
+  background: #fff !important;
+  border-radius: 6px;
+  padding: 2px 8px;
 }
 

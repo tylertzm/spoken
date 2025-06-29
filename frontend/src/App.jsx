@@ -3,6 +3,7 @@ import TranscriptionDisplay from './components/TranscriptionDisplay/Transcriptio
 import TranscriptionHistory from './components/TranscriptionHistory/TranscriptionHistory';
 import webRTCService from './WebRTCService';
 import WebSearchDisplay from './components/WebSearchDisplay/WebSearchDisplay';
+import GroqKeyModal from './components/GroqKeyModal';
 
 function App() {
   const [transcription, setTranscription] = useState('');
@@ -16,6 +17,10 @@ function App() {
   const [taskSummary, setTaskSummary] = useState('');
   const [isTranscribing, setIsTranscribing] = useState(true);
   const clearTranscriptionTimer = useRef(null);
+  const [mainTranscribeSocket, setMainTranscribeSocket] = useState(null);
+  const [finalizedIndexes, setFinalizedIndexes] = useState([]); // NEW: track finalized entries
+  const [showGroqModal, setShowGroqModal] = useState(false);
+  const allTranscriptionsRef = useRef(allTranscriptions);
 
   useEffect(() => {
     const componentId = Math.random().toString(36).substring(2, 11);
@@ -94,6 +99,57 @@ function App() {
     // Add listener - WebRTC streaming will start automatically
     webRTCService.addListener(handleWebRTCMessage);
 
+    // Setup main-transcribe WebSocket for finalized history
+    const ws = new window.WebSocket('ws://localhost:8000/main-transcribe');
+    ws.onopen = () => {
+      console.log('[MainTranscribe] Connected to /main-transcribe');
+    };
+    ws.onmessage = async (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'history' && message.message) {
+          // Call backend to merge live and finalized history using LLM
+          try {
+            const response = await fetch('http://localhost:8000/merge-history', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                live_history: allTranscriptionsRef.current,
+                finalized_chunk: message.message
+              })
+            });
+            const data = await response.json();
+            if (Array.isArray(data.merged)) {
+              setAllTranscriptions(data.merged);
+              // Mark all merged entries as finalized for feedback (simple: all entries are finalized after merge)
+              setFinalizedIndexes(data.merged.map((_, idx) => idx));
+            } else {
+              setAllTranscriptions([message.message, ...allTranscriptionsRef.current]);
+              setFinalizedIndexes([0]);
+            }
+          } catch (err) {
+            console.error('[MainTranscribe] Merge error:', err);
+            setAllTranscriptions(prev => {
+              if (prev.length === 0 || prev[0] !== message.message) {
+                setFinalizedIndexes([0]);
+                return [message.message, ...prev];
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('[MainTranscribe] Failed to parse message', event.data);
+      }
+    };
+    ws.onerror = (err) => {
+      console.error('[MainTranscribe] WebSocket error:', err);
+    };
+    ws.onclose = () => {
+      console.log('[MainTranscribe] WebSocket closed');
+    };
+    setMainTranscribeSocket(ws);
+
     return () => {
       console.log('🧹 App component', componentId, 'unmounting, removing WebRTC listener');
       
@@ -104,8 +160,20 @@ function App() {
       
       webRTCService.removeListener(handleWebRTCMessage);
       // WebRTC streaming will stop automatically when no listeners remain
+
+      ws.close();
     };
   }, []); // Empty dependency array - only run once
+
+  useEffect(() => {
+    const key = localStorage.getItem('groq_api_key');
+    if (!key) setShowGroqModal(true);
+  }, []);
+
+  const handleSetGroqKey = (key) => {
+    setShowGroqModal(false);
+    // Optionally: trigger any logic that needs the key
+  };
 
   const handleLanguageChange = (language) => {
     setSelectedLanguage(language);
@@ -141,30 +209,47 @@ function App() {
     setCleanedTranscriptions(cleaned);
   }, [allTranscriptions]);
 
+  useEffect(() => {
+    console.log('[WebSearch Trigger] taskSummary:', taskSummary, 'showWebSearch:', showWebSearch);
+    const triggerWords = ['check', 'search', 'find', 'lookup', 'google'];
+    if (
+      typeof taskSummary === 'string' &&
+      triggerWords.some(word => taskSummary.toLowerCase().includes(word)) &&
+      !showWebSearch
+    ) {
+      console.log('[WebSearch Trigger] Triggering popup!');
+      setShowWebSearch(true);
+    }
+  }, [taskSummary, showWebSearch]);
+
   return (
-    <div className={historyFullScreen ? 'fullscreen-history' : ''}>
-      <header className="App-header">
-        <TranscriptionDisplay
-          transcription={transcription}
-          allTranscriptions={allTranscriptions}
-          connectionStatus={connectionStatus}
-          imageUrls={imageUrls}
-          onLanguageChange={handleLanguageChange}
-          onReconnect={handleReconnect}
-          cleanedTranscriptions={cleanedTranscriptions}
-          historyFullScreen={historyFullScreen}
-          onToggleHistoryFullScreen={() => setHistoryFullScreen(v => !v)}
-          isTranscribing={isTranscribing}
-          onTranscriptionToggle={handleTranscriptionToggle}
-        />
-      </header>
-      {showWebSearch && (
-        <WebSearchDisplay
-          taskSummary={taskSummary}
-          onClose={() => setShowWebSearch(false)}
-        />
-      )}
-    </div>
+    <>
+      {showGroqModal && <GroqKeyModal onSetKey={handleSetGroqKey} />}
+      <div className={historyFullScreen ? 'fullscreen-history' : ''}>
+        <header className="App-header">
+          <TranscriptionDisplay
+            transcription={transcription}
+            allTranscriptions={allTranscriptions}
+            connectionStatus={connectionStatus}
+            imageUrls={imageUrls}
+            onLanguageChange={handleLanguageChange}
+            onReconnect={handleReconnect}
+            cleanedTranscriptions={cleanedTranscriptions}
+            historyFullScreen={historyFullScreen}
+            onToggleHistoryFullScreen={() => setHistoryFullScreen(v => !v)}
+            isTranscribing={isTranscribing}
+            onTranscriptionToggle={handleTranscriptionToggle}
+            finalizedIndexes={finalizedIndexes} // Pass to child
+          />
+        </header>
+        {showWebSearch && (
+          <WebSearchDisplay
+            taskSummary={taskSummary}
+            onClose={() => setShowWebSearch(false)}
+          />
+        )}
+      </div>
+    </>
   );
 }
 

@@ -19,6 +19,7 @@ function TranscriptionDisplay({
   onToggleHistoryFullScreen = () => {},
   isTranscribing = true,
   onTranscriptionToggle = () => {},
+  finalizedIndexes = [], // NEW: finalized feedback
 }) {
   const [rmsThreshold, setRmsThreshold] = useState(100);
   const [showSettings, setShowSettings] = useState(false);
@@ -68,39 +69,74 @@ function TranscriptionDisplay({
         <div className="table-cell" style={{ gridColumn: '1 / span 2' }}>
           <div className="control-bar" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <LanguageSelector onLanguageChange={onLanguageChange} />
-            {/* Moved the transcription button here */}
-            <button
-              onClick={onTranscriptionToggle}
-              aria-label={isTranscribing ? 'Stop Transcription' : 'Start Transcription'}
+            <div
+              className="status-btn-group"
               style={{
                 position: 'fixed',
                 top: 24,
                 right: 32,
                 zIndex: 1200,
-                background: isTranscribing ? '#e53935' : '#43a047',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '50%',
-                width: 48,
-                height: 48,
-                fontSize: 28,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
+                gap: 12,
+                background: 'rgba(255,255,255,0.85)',
+                borderRadius: 28,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                padding: '4px 12px',
+                border: '1.5px solid #000', // Added black border
               }}
             >
-              {isTranscribing ? (
-                <span style={{ fontWeight: 700, fontSize: 32, lineHeight: 1 }}>&#9632;</span>
-              ) : (
-                <span style={{ fontWeight: 700, fontSize: 32, lineHeight: 1 }}>&#9654;</span>
+              {showStatusIndicator && (
+                <ConnectionStatusDisplay connectionStatus={connectionStatus} onReconnect={onReconnect} style={{ fontSize: 12 }} />
               )}
-            </button>
-            {showStatusIndicator && (
-              <ConnectionStatusDisplay connectionStatus={connectionStatus} onReconnect={onReconnect} />
-            )}
+              <button
+                onClick={onTranscriptionToggle}
+                aria-label={isTranscribing ? 'Stop Transcription' : 'Start Transcription'}
+                style={{
+                  background: isTranscribing ? '#e53935' : '#43a047',
+                  border: '2px solid #000',
+                  borderRadius: 24,
+                  width: 64,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                  position: 'relative',
+                  boxSizing: 'border-box',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: 12, // Smaller font
+                    opacity: isTranscribing ? 0 : 1,
+                    transition: 'opacity 0.2s',
+                  }}
+                >Start</span>
+                <span
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: 12, // Smaller font
+                    opacity: isTranscribing ? 1 : 0,
+                    transition: 'opacity 0.2s',
+                  }}
+                >Stop</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -142,6 +178,7 @@ function TranscriptionDisplay({
                 fullScreen={historyFullScreen}
                 onToggleFullScreen={onToggleHistoryFullScreen}
                 cleanedTranscriptions={cleanedTranscriptions || []} 
+                finalizedIndexes={finalizedIndexes} // Pass to child
               />
             </div>
           </div>

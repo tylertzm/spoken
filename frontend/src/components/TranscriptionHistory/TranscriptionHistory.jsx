@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import ImageDisplay from '../ImageDisplay/ImageDisplay';
+import ReactDOM from 'react-dom';
 
-function TranscriptionHistory({ allTranscriptions, imageUrls, fullScreen, onToggleFullScreen, onEditTranscription }) {
+function TranscriptionHistory({ allTranscriptions, imageUrls, fullScreen, onToggleFullScreen, onEditTranscription, finalizedIndexes = [], onDeleteTranscription }) {
   // Provide a default no-op function if onToggleFullScreen is not passed
   const toggleFullScreen = typeof onToggleFullScreen === 'function' ? onToggleFullScreen : () => {};
   // Provide a default no-op for edit callback
   const editTranscription = typeof onEditTranscription === 'function' ? onEditTranscription : (idx, newText) => {};
+  // Provide a default no-op for delete callback
+  const deleteTranscription = typeof onDeleteTranscription === 'function' ? onDeleteTranscription : (idx) => {};
 
   const [editingIndex, setEditingIndex] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -43,63 +46,35 @@ function TranscriptionHistory({ allTranscriptions, imageUrls, fullScreen, onTogg
     setEditValue('');
   };
 
-  return (
-    <div className="table-cell history-cell" style={{ position: 'relative' }}>
-      <div className="history-display">
-        <div
-          className={fullScreen ? 'fullscreen-history-log glassy-fade' : 'history-log'}
-          style={fullScreen
-            ? {
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                maxWidth: '100vw',
-                maxHeight: '100vh',
-                zIndex: 1000,
-                alignItems: 'flex-start',
-                textAlign: 'left',
-                overflowY: 'auto',
-                padding: '32px',
-                boxSizing: 'border-box',
-                display: 'flex',
-                flexDirection: 'column',
-                background: 'rgba(0,0,0,0.92)',
-              }
-            : { position: 'relative' }}
-        >
-          <button
-            onClick={handleButtonClick}
-            className="fullscreen-toggle-btn"
-            aria-label={fullScreen ? 'Exit Full Screen' : 'Full Screen'}
-            type="button"
-            style={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              zIndex: 10,
-              background: 'rgba(0,0,0,0.5)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '6px 14px',
-              cursor: 'pointer',
-              fontSize: 18,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
-            }}
-          >
-            <span>{fullScreen ? '\u2715' : '\u26F6'}</span>
-          </button>
+  const handleDelete = (idx) => {
+    const updated = localTranscriptions.filter((_, i) => i !== idx);
+    setLocalTranscriptions(updated);
+    deleteTranscription(idx);
+  };
+
+  // Fullscreen overlay content
+  const fullscreenContent = (
+    <div className="history-fullscreen-overlay">
+      <button
+        onClick={handleButtonClick}
+        className="fullscreen-btn live-fs-btn"
+        aria-label="Exit Full Screen"
+        type="button"
+      >
+        <span>&#10005;</span> {/* Unicode X for close */}
+      </button>
+      <div className="fullscreen-history-log glassy-fade">
+        <div className="fullscreen-history-scroll">
           {localTranscriptions.length === 0 ? (
-            <p style={{ color: '#888', fontStyle: 'italic' }}>
+            <p className="history-empty-msg">
               History currently unavailable
             </p>
           ) : (
             localTranscriptions.map((text, index) => {
               const images = Array.isArray(imageUrls) && imageUrls[index] ? imageUrls[index] : undefined;
+              const isFinalized = finalizedIndexes.includes(index);
               return (
-                <div key={index} className="history-item" style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative', marginBottom: 8 }}>
+                <div key={index} className={`history-item${isFinalized ? ' finalized' : ''}`}> 
                   {editingIndex === index ? (
                     <>
                       <input
@@ -107,49 +82,121 @@ function TranscriptionHistory({ allTranscriptions, imageUrls, fullScreen, onTogg
                         value={editValue}
                         onChange={handleEditChange}
                         className="edit-input"
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          marginRight: 8,
-                          padding: 0,
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#fff',
-                          fontSize: '1em',
-                          outline: 'none',
-                          boxShadow: 'none',
-                        }}
                         autoFocus
                         onKeyDown={e => {
                           if (e.key === 'Enter') handleEditSave(index);
                           if (e.key === 'Escape') handleEditCancel();
                         }}
                       />
-                      <button onClick={() => handleEditSave(index)} className="edit-save-btn" aria-label="Save Edit" style={{ marginRight: 4, background: 'transparent', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', cursor: 'pointer' }}>Save</button>
-                      <button onClick={handleEditCancel} className="edit-cancel-btn" aria-label="Cancel Edit" style={{ background: 'transparent', color: '#888', border: 'none', borderRadius: 4, padding: '4px 10px', cursor: 'pointer' }}>Cancel</button>
+                      <button onClick={() => handleEditSave(index)} className="edit-save-btn" aria-label="Save Edit">Save</button>
+                      <button onClick={handleEditCancel} className="edit-cancel-btn" aria-label="Cancel Edit">Cancel</button>
                     </>
                   ) : (
                     <>
-                      <span style={{ flex: 1, minWidth: 0, marginRight: 8, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>{text}</span>
+                      <span className={`history-text${isFinalized ? ' finalized' : ''}`}>{text}</span>
+                      {isFinalized && <span title="Finalized" className="finalized-check">✔️</span>}
                       <button
                         onClick={() => handleEditClick(index)}
                         className="edit-btn"
                         aria-label="Edit Line"
-                        style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 18, padding: 4, display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}
-                        onMouseOver={e => (e.currentTarget.style.color = '#fff')}
-                        onMouseOut={e => (e.currentTarget.style.color = '#aaa')}
                         title="Edit"
                       >
                         <span role="img" aria-label="Edit">✏️</span>
                       </button>
+                      <button
+                        onClick={() => handleDelete(index)}
+                        className="edit-btn"
+                        aria-label="Delete Line"
+                        title="Delete"
+                        style={{ color: 'red', marginLeft: 4 }}
+                      >
+                        <span role="img" aria-label="Delete">🗑️</span>
+                      </button>
                     </>
                   )}
-                  {images && <div style={{ marginLeft: 8 }}><ImageDisplay images={images} /></div>}
+                  {images && <div className="history-image-wrapper"><ImageDisplay images={images} /></div>}
                 </div>
               );
             })
           )}
         </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="table-cell history-cell" style={{ position: 'relative' }}>
+      <div className="history-display">
+        {!fullScreen && (
+          <>
+            <button
+              onClick={handleButtonClick}
+              className="fullscreen-btn live-fs-btn history-fs-btn"
+              aria-label="Full Screen"
+              type="button"
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}
+            >
+              <span>&#9974;</span> {/* Unicode for compass icon */}
+            </button>
+            <div className="history-log">
+              {localTranscriptions.length === 0 ? (
+                <p className="history-empty-msg">
+                  History currently unavailable
+                </p>
+              ) : (
+                localTranscriptions.map((text, index) => {
+                  const images = Array.isArray(imageUrls) && imageUrls[index] ? imageUrls[index] : undefined;
+                  const isFinalized = finalizedIndexes.includes(index);
+                  return (
+                    <div key={index} className={`history-item${isFinalized ? ' finalized' : ''}`}> 
+                      {editingIndex === index ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editValue}
+                            onChange={handleEditChange}
+                            className="edit-input"
+                            autoFocus
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') handleEditSave(index);
+                              if (e.key === 'Escape') handleEditCancel();
+                            }}
+                          />
+                          <button onClick={() => handleEditSave(index)} className="edit-save-btn" aria-label="Save Edit">Save</button>
+                          <button onClick={handleEditCancel} className="edit-cancel-btn" aria-label="Cancel Edit">Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <span className={`history-text${isFinalized ? ' finalized' : ''}`}>{text}</span>
+                          {isFinalized && <span title="Finalized" className="finalized-check">✔️</span>}
+                          <button
+                            onClick={() => handleEditClick(index)}
+                            className="edit-btn"
+                            aria-label="Edit Line"
+                            title="Edit"
+                          >
+                            <span role="img" aria-label="Edit">✏️</span>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(index)}
+                            className="edit-btn"
+                            aria-label="Delete Line"
+                            title="Delete"
+                            style={{ color: 'red', marginLeft: 4 }}
+                          >
+                            <span role="img" aria-label="Delete">🗑️</span>
+                          </button>
+                        </>
+                      )}
+                      {images && <div className="history-image-wrapper"><ImageDisplay images={images} /></div>}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </>
+        )}
+        {fullScreen && ReactDOM.createPortal(fullscreenContent, document.body)}
       </div>
     </div>
   );

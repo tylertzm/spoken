@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
 function WebSearchDisplay({ taskSummary, onClose }) {
-  const [searchResult, setSearchResult] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [ask, setAsk] = useState(true);
 
   useEffect(() => {
     setAsk(true);
-    setSearchResult('');
+    setSearchResults([]);
     setError(null);
   }, [taskSummary]);
 
@@ -22,8 +22,8 @@ function WebSearchDisplay({ taskSummary, onClose }) {
     })
       .then(res => res.json())
       .then(data => {
-        let answer = data.answer || 'No answer found.';
-        setSearchResult(answer);
+        let results = Array.isArray(data.results) ? data.results : [];
+        setSearchResults(results);
         setLoading(false);
       })
       .catch(err => {
@@ -58,6 +58,8 @@ function WebSearchDisplay({ taskSummary, onClose }) {
           width: '90vw',
           fontFamily: 'Inter, sans-serif',
           position: 'relative',
+          maxHeight: '90vh',
+          overflowY: 'auto',
         }}
       >
         <button
@@ -138,7 +140,25 @@ function WebSearchDisplay({ taskSummary, onClose }) {
         ) : error ? (
           <div className="websearch-error">{error}</div>
         ) : (
-          <div className="websearch-result">{searchResult}</div>
+          <div className="websearch-result">
+            {searchResults.length === 0 ? (
+              <div style={{ color: '#bbb' }}>No results found.</div>
+            ) : (
+              <ol style={{ paddingLeft: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1.2em' }}>
+                {searchResults.map((result, idx) => (
+                  <li key={idx} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '0.7em 1em' }}>
+                    <div style={{ fontWeight: 600, fontSize: '1.05em', marginBottom: 4 }}>
+                      <a href={result.link || result.url} target="_blank" rel="noopener noreferrer" style={{ color: '#7ecbff', textDecoration: 'none', wordBreak: 'break-all' }}>{result.title || result.link || result.url}</a>
+                    </div>
+                    <div style={{ color: '#eee', fontSize: '0.98em', marginBottom: 4 }}>{result.summary}</div>
+                    <div style={{ color: '#8ad', fontSize: '0.92em', wordBreak: 'break-all' }}>
+                      <a href={result.link || result.url} target="_blank" rel="noopener noreferrer" style={{ color: '#8ad', textDecoration: 'underline', wordBreak: 'break-all' }}>{result.link || result.url}</a>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         )}
       </div>
     </div>
