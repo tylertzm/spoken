@@ -14,6 +14,7 @@ function App() {
   const [historyFullScreen, setHistoryFullScreen] = useState(false);
   const [showWebSearch, setShowWebSearch] = useState(false);
   const [taskSummary, setTaskSummary] = useState('');
+  const [isTranscribing, setIsTranscribing] = useState(true);
   const clearTranscriptionTimer = useRef(null);
 
   useEffect(() => {
@@ -121,6 +122,16 @@ function App() {
     }, 500); // Small delay to ensure cleanup
   };
 
+  const handleTranscriptionToggle = () => {
+    if (isTranscribing) {
+      webRTCService.stopAudioStreaming();
+      setIsTranscribing(false);
+    } else {
+      webRTCService.startAudioStreaming();
+      setIsTranscribing(true);
+    }
+  };
+
   useEffect(() => {
     const cleaned = Array.from(new Set(
       allTranscriptions
@@ -143,6 +154,8 @@ function App() {
           cleanedTranscriptions={cleanedTranscriptions}
           historyFullScreen={historyFullScreen}
           onToggleHistoryFullScreen={() => setHistoryFullScreen(v => !v)}
+          isTranscribing={isTranscribing}
+          onTranscriptionToggle={handleTranscriptionToggle}
         />
       </header>
       {showWebSearch && (

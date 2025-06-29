@@ -17,6 +17,8 @@ function TranscriptionDisplay({
   cleanedTranscriptions,
   historyFullScreen = false,
   onToggleHistoryFullScreen = () => {},
+  isTranscribing = true,
+  onTranscriptionToggle = () => {},
 }) {
   const [rmsThreshold, setRmsThreshold] = useState(100);
   const [showSettings, setShowSettings] = useState(false);
@@ -64,8 +66,38 @@ function TranscriptionDisplay({
     <div className="transcription-absolute-table">
       <div className="table-row">
         <div className="table-cell" style={{ gridColumn: '1 / span 2' }}>
-          <div className="control-bar">
+          <div className="control-bar" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <LanguageSelector onLanguageChange={onLanguageChange} />
+            {/* Moved the transcription button here */}
+            <button
+              onClick={onTranscriptionToggle}
+              aria-label={isTranscribing ? 'Stop Transcription' : 'Start Transcription'}
+              style={{
+                position: 'fixed',
+                top: 24,
+                right: 32,
+                zIndex: 1200,
+                background: isTranscribing ? '#e53935' : '#43a047',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '50%',
+                width: 48,
+                height: 48,
+                fontSize: 28,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+            >
+              {isTranscribing ? (
+                <span style={{ fontWeight: 700, fontSize: 32, lineHeight: 1 }}>&#9632;</span>
+              ) : (
+                <span style={{ fontWeight: 700, fontSize: 32, lineHeight: 1 }}>&#9654;</span>
+              )}
+            </button>
             {showStatusIndicator && (
               <ConnectionStatusDisplay connectionStatus={connectionStatus} onReconnect={onReconnect} />
             )}
