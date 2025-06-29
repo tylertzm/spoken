@@ -416,7 +416,7 @@ body {
   box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
   border-radius: 1.5rem;
   opacity: 1;
-  font-size: 20vh;
+  font-size: 10vw;
 }
 
 .glassy-fade {
